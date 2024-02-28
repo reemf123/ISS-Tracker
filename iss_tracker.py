@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from typing import List
 import json
 from datetime import datetime, timezone
@@ -13,7 +13,7 @@ DATA_SOURCE = 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_
 
 app = Flask(__name__)
 
-def getData(limit=None, offset=None) -> List[dict]:
+def getStateVectorData(limit=None, offset=None) -> List[dict]:
     """Function GETS ISS data from NASA Website and returns a list of epochs with the specified limit and offset. 
     Args:
         limit (int): The number of epochs the API should return no more than. 
@@ -117,7 +117,7 @@ def calculateSpeed(x_dot:float, y_dot: float, z_dot: float) -> float:
 # curl 'http://127.0.0.1:5000/epochs?limit=int&offset=int' (Must surround with quotes becuase & behaves strange on Linux CL)
 @app.route("/epochs", methods=['GET'])
 def epochs() -> List[dict]:
-    """Function calls the getData() method to return the data given the limit and offset query parameters. 
+    """Function calls the StateVector() method to return the data given the limit and offset query parameters. 
     Returns:
         List[dict]: List of state vector dictionaries that are filtered based on the provied limit and offset
     """
@@ -127,7 +127,7 @@ def epochs() -> List[dict]:
     
     # limit = None, offset = None
     if limit is None and offset is None:
-        return (getData(limit, offset))
+        return (getStateVectorData(limit, offset))
     
     # limit != None, offset = None
     if offset is None and limit is not None: 
@@ -135,14 +135,14 @@ def epochs() -> List[dict]:
             limit = int(limit)
             if limit == 0:
                 return ([])
-            return getData(limit, offset)
+            return getStateVectorData(limit, offset)
         except ValueError: 
             return "Error: Limit must be an integer \n"
         
     if limit is None and offset is not None: 
         try:
             offset = int(offset)
-            return getData(limit, offset)
+            return getStateVectorData(limit, offset)
         except ValueError: 
             return "Error: Offset must be an integer \n"
     try:
@@ -151,27 +151,12 @@ def epochs() -> List[dict]:
             return ([])
     except ValueError: 
         return "Error: Limit must be an integer \n"
-
     try:
         offset = int(offset)
     except ValueError: 
         return "Error: Offset must be an integer \n"
  
-    return (getData(limit, offset))
-
-# curl http://127.0.0.1:5000/now
-@app.route("/now", methods=['GET'])
-def now() -> dict:
-    """Function gets epoch with the closest time stamp to now with instantaneous speed appended to epoch
-    Returns:
-        dict: Dictionary containing epoch information closest to the time of the program's execution 
-        plus instantaneous speed calculation.
-    """
-    data = getData()
-    now_epoch = getNowEpoch(data)
-    instantaneous_speed = calculateSpeed(float(now_epoch['X_DOT']['#text']), float(now_epoch['Y_DOT']['#text']), float(now_epoch['Z_DOT']['#text']))
-    now_epoch["INSTANTANEOUS SPEED"] = {"#text": str(instantaneous_speed), "@units":"km/s"}
-    return now_epoch
+    return (getStateVectorData(limit, offset))
 
 # curl http://127.0.0.1:5000/epochs/<epoch>
 @app.route("/epochs/<epoch>", methods=['GET'])
@@ -182,14 +167,14 @@ def epoch(epoch:str) -> dict:
     Returns:
         dict: State vector data of specific epoch
     """
-    data = getData()
+    data = getStateVectorData()
     for entry in data:
         if (entry["EPOCH"] == epoch):
             return entry
     return "Epoch not available \n"
 
 # curl http://127.0.0.1:5000/epochs/<epoch>/speed
-@app.route("/epochs/<epoch>/speed")
+@app.route("/epochs/<epoch>/speed", methods=['GET'])
 def speed(epoch:str) -> dict:
     """Function returns instantaneous speed of a specific epoch in the data set
     Args:
@@ -197,12 +182,83 @@ def speed(epoch:str) -> dict:
     Returns:
         dict: Dictionary containing instantaneous speed information
     """
-    data = getData()
+    data = getStateVectorData()
     for entry in data:
         if (entry["EPOCH"] == epoch):
             instantaneous_speed = calculateSpeed(float(entry['X_DOT']['#text']), float(entry['Y_DOT']['#text']), float(entry['Z_DOT']['#text']))
             return({"INSTANTANEOUS SPEED": {"#text": instantaneous_speed, "@units": "km/s"}})       
     return "Epoch not available \n"
+
+
+# curl http://127.0.0.1:5000/comment
+@app.route("/comment", methods=['GET'])
+def comment() -> list:
+    """Function extracts the comment list object from the ISS data. 
+    Returns:
+        list: Formatted list of comment data from ISS
+    """
+    r = requests.get(DATA_SOURCE)
+    if (r.status_code == 200):
+        logging.info("HTTP Request Successful")
+        xml_data = xmltodict.parse(r.text)
+        comments:list = xml_data['ndm']['oem']['body']['segment']['data']['COMMENT']
+        return(jsonify(comments))
+    else:       
+        logging.error(f"Bad HHTP Request {r.status_code}")
+        return None
+
+# curl http://127.0.0.1:5000/header
+@app.route("/header", methods=['GET'])
+def header() -> dict:
+    """Function extracts the header from the ISS data. 
+    Returns:
+        dict: Dictionary of header information including information about creation date and originator. 
+    """
+    r = requests.get(DATA_SOURCE)
+    if (r.status_code == 200):
+        logging.info("HTTP Request Successful")
+        xml_data = xmltodict.parse(r.text)
+        header:dict = xml_data['ndm']['oem']['header']
+        return header
+    else:       
+        logging.error(f"Bad HHTP Request {r.status_code}")
+        return None
+
+# curl http://127.0.0.1:5000/metadata
+@app.route("/metadata", methods=['GET'])
+def metadata() -> dict:
+    """Function extracts the metadata about the ISS Data. 
+    Returns:
+        dict: Dictionary of metadata containing object name and id, center name, 
+            reference frame, time system, etc.  
+    """
+    r = requests.get(DATA_SOURCE)
+    if (r.status_code == 200):
+        logging.info("HTTP Request Successful")
+        xml_data = xmltodict.parse(r.text)
+        metadata:dict = xml_data['ndm']['oem']['body']['segment']['metadata']
+        return metadata
+    else:       
+        logging.error(f"Bad HHTP Request {r.status_code}")
+        return None
+
+@app.route("/epoch/<epoch>/location")
+def location(epoch:str):
+    pass
+
+#TODO UPDATE
+# curl http://127.0.0.1:5000/now
+@app.route("/now", methods=['GET'])
+def now() -> dict:
+    """
+    Return instantaneous speed, latitude, longitude, altitude, and geoposition for the Epoch that is 
+    nearest in time
+    """
+    data = getStateVectorData()
+    now_epoch = getNowEpoch(data)
+    instantaneous_speed = calculateSpeed(float(now_epoch['X_DOT']['#text']), float(now_epoch['Y_DOT']['#text']), float(now_epoch['Z_DOT']['#text']))
+    now_epoch["INSTANTANEOUS SPEED"] = {"#text": str(instantaneous_speed), "@units":"km/s"}
+    return now_epoch
 
 if __name__ == "__main__":
     app.run(debug=True,  host='0.0.0.0')

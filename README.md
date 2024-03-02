@@ -53,14 +53,14 @@ The ISS Trajectory Data Contains information on:
 ### Instructions on How to Build a Container
 Once the homework5 repository has been pulled and you have iss_tracker.py, test_iss_tracker.py, and Dockerfile in the same directory, you build an image of the program with the following command: `docker build -t <dockerhubusername>/<code>:<version> .`
 
-- Example Command: `docker build -t reemf123/homework05:1.0 .`
+- Example Command: `docker build -t reemf123/iss_tracker:1.0 .`
 
 To ensure the build was succesful, run `docker images`
 
 ### Instructions on How to Deploy Containerized Code as a Flask App
 To create an instance of your image (a “container”), use the following command: `docker run --name "name-of-app" -d -p 5000:5000 <dockerhubusername>/<code>:<version>`
 
-- Example Command: `docker run --name "iss-tracker-app" -d -p 5000:5000 reemf123/homework05:1.0`
+- Example Command: `docker run --name "iss-tracker-app" -d -p 5000:5000 reemf123/iss_tracker:1.0`
 
 The `-d` flag detaches your terminal from the running container - i.e. it runs the container in the background. The `-p` flag maps a port on the VM (5000, in the above case) to a port inside the container (again 5000, in the above case). 
 
@@ -69,16 +69,16 @@ To check to see if everything is up and running as expected, execute: `docker ps
 Once you have ensured that the microservice is up and running, you can access your application vial `curl` and by specifying the port. 
 
 Example Commands to Execute Routes in Container (See Details about Routes Below):
+- `curl localhost:5000/comment`
 - `curl localhost:5000/epochs`
 - `curl 'localhost:5000/epochs?limit=<int>&offset=<int>'`
-- `curl localhost:5000/now`
-- `curl localhost:5000/now/time`
 - `curl localhost:5000/epochs/<epoch>`
 - `curl localhost:5000/epochs/<epoch>/speed`
-- 
-- 
-- 
-
+- `curl localhost:5000/epochs/<epoch>/location`
+- `curl localhost:5000/header`
+- `curl localhost:5000/metadata`
+- `curl localhost:5000/now`
+- `curl localhost:5000/now/time`
 
 ### Instructions to Stop Microservice 
 To stop your running container and remove it execute: 
@@ -88,7 +88,7 @@ To stop your running container and remove it execute:
 ### Instructions to Run the Containerized Unit Tests
 To call a container, `docker run` is used. To execute all of the unit tests written inside the application, pytest is called before the file name containing the unit tests: `docker run --rm <username>/<imagename>:<tag> full/path/to/pytest -vv <path_to_unit_test_in_container>.py`
 
-- Example Command: `docker run --rm reemf123/homework05:1.0 /usr/local/bin/pytest -vv /app/test_iss_tracker.py`
+- Example Command: `docker run --rm reemf123/iss_tracker:1.0 /usr/local/bin/pytest -vv /app/test_iss_tracker.py`
 
 ### Instructions For Accessing Web App Routes & Route Output Descriptions
 - General Curl Command: `curl -X METHOD [URL Example Domain]`

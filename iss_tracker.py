@@ -101,8 +101,6 @@ def getNowEpoch(data:List[dict]) -> dict:
             if(time_diff < min_diff):
                 min_diff = time_diff
                 stored_epoch = epoch
-    print("Latest Epoch Data: ")    
-    print(json.dumps(stored_epoch, indent=4))
     return stored_epoch
 
 def calculateSpeed(x_dot:float, y_dot: float, z_dot: float) -> float:
@@ -289,8 +287,8 @@ def metadata() -> dict:
         logging.error(f"Bad HHTP Request {r.status_code}")
         return None
 
-# curl http://127.0.0.1:5000/epoch/<epoch>/location
-@app.route("/epoch/<epoch>/location")  
+# curl http://127.0.0.1:5000/epochs/<epoch>/location
+@app.route("/epochs/<epoch>/location")  
 def location(epoch:str) -> dict:
     """Function parses through entire data set and extracts the epoch of intreset 
             to return its altitude, longitude, altitude, and geoposition. 

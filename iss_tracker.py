@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 from flask import Flask, request, jsonify
+from geopy.geocoders import Nominatim
+from datetime import datetime, timezone
 from typing import List
 import json
-from datetime import datetime, timezone
-import numpy as np
-import math
 import logging
+import math
+import numpy as np
 import requests
 import xmltodict
 
 DATA_SOURCE = 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml'
+EARTH_RADIUS = 6371.0  # km
+
+# Initialize Nominatim API 
+geolocator = Nominatim(user_agent="ISS_TRACKER")
 
 app = Flask(__name__)
 
@@ -112,6 +117,49 @@ def calculateSpeed(x_dot:float, y_dot: float, z_dot: float) -> float:
     speed = math.sqrt(x_dot**2 + y_dot**2 + z_dot**2)
     return speed
 
+def calculateLocation(x:float, y:float, z:float) -> dict:
+    """Function calculates the geolocation of the ISS from 
+        the x/y/z coordinates recorded with respect to the center of the earth. 
+    Args:
+        x (float): X coordinate of the ISS measured with respect to the center of the earth
+        y (float): Y coordinate of the ISS measured with respect to the center of the earth
+        z (float): Z coordinate of the ISS measured with respect to the center of the earth
+    Returns:
+        dict: Dcictionary containing geolocation details of the ISS
+    """
+    # Initialize geolocation attributes to None
+    address = None
+    city = None
+    state = None
+    country = None
+    code = None
+
+    # TODO FIX
+    altitude = math.sqrt(x**2 + y**2 + z**2) - EARTH_RADIUS # km
+    longitude = np.degrees(np.arctan2(y, x))                # degrees
+    #latitude = np.degrees(np.arcsin(z/(EARTH_RADIUS + altitude)))
+    latitude = np.degrees(np.arcsin(z/EARTH_RADIUS))        # degrees
+    #latitude = np.degrees(np.arccos(z/math.sqrt(x**2 + y**2 + z**2)))        # degrees
+    location_tuple_string = f"{latitude}, {longitude}"
+    geoposition = geolocator.reverse(location_tuple_string)
+    print(geoposition)
+
+    if geoposition is not None: 
+        address = geoposition.raw['address']
+        city = address.get('city', '')
+        state = address.get('state', '')
+        country = address.get('country', '')
+        code = address.get('country_code')
+
+    iss_location = {
+        "Altitude [km]": round(altitude,3), 
+        "Longitude [degrees]": round(longitude,3), 
+        "Latitude [degrees]": round(latitude,3), 
+        "Geoposition": {"City": city, "State": state, "Country": country, "Country Code": code}
+        }
+    
+    return iss_location
+
 # curl http://127.0.0.1:5000/epochs
 # curl -X GET http://127.0.0.1:5000/epochs
 # curl 'http://127.0.0.1:5000/epochs?limit=int&offset=int' (Must surround with quotes becuase & behaves strange on Linux CL)
@@ -185,10 +233,9 @@ def speed(epoch:str) -> dict:
     data = getStateVectorData()
     for entry in data:
         if (entry["EPOCH"] == epoch):
-            instantaneous_speed = calculateSpeed(float(entry['X_DOT']['#text']), float(entry['Y_DOT']['#text']), float(entry['Z_DOT']['#text']))
+            instantaneous_speed = round(calculateSpeed(float(entry['X_DOT']['#text']), float(entry['Y_DOT']['#text']), float(entry['Z_DOT']['#text'])),3)
             return({"INSTANTANEOUS SPEED": {"#text": instantaneous_speed, "@units": "km/s"}})       
     return "Epoch not available \n"
-
 
 # curl http://127.0.0.1:5000/comment
 @app.route("/comment", methods=['GET'])
@@ -242,11 +289,24 @@ def metadata() -> dict:
         logging.error(f"Bad HHTP Request {r.status_code}")
         return None
 
-@app.route("/epoch/<epoch>/location")
-def location(epoch:str):
-    pass
+# curl http://127.0.0.1:5000/epoch/<epoch>/location
+@app.route("/epoch/<epoch>/location")  
+def location(epoch:str) -> dict:
+    """Function parses through entire data set and extracts the epoch of intreset 
+            to return its altitude, longitude, altitude, and geoposition. 
+        Args:
+            epoch (str): Datetime string for specific state vectors
+        Returns:
+            dict:
+    """
+    data = getStateVectorData()
+    for entry in data:
+        if (entry["EPOCH"] == epoch):
+            iss_location = calculateLocation(float(entry['X']['#text']), float(entry['Y']['#text']), float(entry['Z']['#text']))
+            return iss_location
+        
+    return "Epoch not available \n"
 
-#TODO UPDATE
 # curl http://127.0.0.1:5000/now
 @app.route("/now", methods=['GET'])
 def now() -> dict:
@@ -256,9 +316,33 @@ def now() -> dict:
     """
     data = getStateVectorData()
     now_epoch = getNowEpoch(data)
-    instantaneous_speed = calculateSpeed(float(now_epoch['X_DOT']['#text']), float(now_epoch['Y_DOT']['#text']), float(now_epoch['Z_DOT']['#text']))
-    now_epoch["INSTANTANEOUS SPEED"] = {"#text": str(instantaneous_speed), "@units":"km/s"}
-    return now_epoch
+    instantaneous_speed = round(calculateSpeed(float(now_epoch['X_DOT']['#text']), float(now_epoch['Y_DOT']['#text']), float(now_epoch['Z_DOT']['#text'])), 3)
+    iss_location = calculateLocation(float(now_epoch['X']['#text']), float(now_epoch['Y']['#text']), float(now_epoch['Z']['#text']))
+    
+    iss_data = iss_location
+    iss_data["Instantaneous Speed [km/s]"] = instantaneous_speed
+    
+    return iss_data
+
+# curl http://127.0.0.1:5000/now/time
+@app.route("/now/time", methods=['GET'])
+def nowTime() -> dict:
+    """Function returns dictionary of current time and latest epoch time. 
+        The time difference between the time stamps should never be greater than 4 minutes. 
+    Returns:
+        dict: Dictionary of current time and latest epoch time. 
+    """
+    now_utc = datetime.now(timezone.utc)
+    formatted_now = now_utc.strftime("%Y-%jT%H:%M:%S.%fZ")
+    
+    data = getStateVectorData()
+    now_epoch = getNowEpoch(data)
+
+    times_dict = {
+        "Current Time": formatted_now, 
+        "Latest Epoch Time": now_epoch["EPOCH"]
+    }
+    return times_dict
 
 if __name__ == "__main__":
     app.run(debug=True,  host='0.0.0.0')

@@ -11,7 +11,6 @@ The objective of this project is to transform our simple ISS Tracker into a full
 
 This project is important because it facilitates access to real-time ISS data in a user-friendly manner, enabling researchers, enthusiasts, and developers to gain valuable insights into the movement and dynamics of the International Space Station. For our development as students, deploying a web service teaches us how to write routes in a RESTful manner and help us understand how backend and frontend development work together to create a seamless tool that lives on the internet for users to interact with. 
 
-
 ### Software Diagram: 
 The following software diagram captures the primary components and workflow of our system, describing the process in which a client may query for the NASA ISS data via a containerized web application developed through Flask.
 
@@ -20,17 +19,21 @@ The following software diagram captures the primary components and workflow of o
 ### Description of Folder Contents
 - `Dockerfile`: Contains instructions for building a Docker image of our program
 - `iss_tracker.py`: Main Python script that ingests the ISS data using the requests library, and stores it in a list-of-dictionaries. The script then defines a series of Flask routes: 
+    - [GET] `/comment`: Returns ‘comment’ list object from ISS data
+    - [GET] `header`: Returns ‘header’ dict object from ISS data
+    - [GET] `metadata`: Returns ‘metadata’ dict object from ISS data
     - [GET] `/epochs`: Returns the entire data set
     - [GET] `/epochs?limit=int&offset=int`: Returns modified list of Epochs given query parameters
     - [GET] `/epochs/<epoch>`: Returns state vectors for a specific Epoch from the data set
     - [GET] `/epochs/<epoch>/speed`: Returns instantaneous speed for a specific Epoch in the data set 
-    - [GET] `/now`: 
-    - [GET]
-    - [GET]
-    - [GET]
+    - [GET] `/epochs/<epoch>/location`: Returns latitude, longitude, altitude, and geo-position for a specific Epoch in the data set 
+    - [GET] `/now`: Returns instantaneous speed, latitude, longitude, altitude, and geo-position for the Epoch that is nearest in time
+    - [GET] `/now/time`: Returns current time and latest epoch time of ISS. The time difference between the time stamps should never be greater than 4 minutes. 
 
-- `test_iss_tracker.py`: The testing script for the iss_tracker.py. Ensures the robustness of our program. 
-- `softwareDiagram.png`: Software diagram capturing as many components of the project as possible. 
+- `test/test_iss_tracker.py`: The testing script for the iss_tracker.py. Ensures the robustness of our program. 
+- `softwareDiagram.png`: Software diagram capturing the primary components of the project architecture. 
+- `docker-compose.yml`: 
+- `requirements.txt`: Text file that lists all of the python non standard libraries used to develop the code. 
 
 ### Data
 Our project ingests the ISS Data via an API GET request that can be accessed either in the form of .xml or .text. 
@@ -69,8 +72,13 @@ Example Commands to Execute Routes in Container (See Details about Routes Below)
 - `curl localhost:5000/epochs`
 - `curl 'localhost:5000/epochs?limit=<int>&offset=<int>'`
 - `curl localhost:5000/now`
+- `curl localhost:5000/now/time`
 - `curl localhost:5000/epochs/<epoch>`
 - `curl localhost:5000/epochs/<epoch>/speed`
+- 
+- 
+- 
+
 
 ### Instructions to Stop Microservice 
 To stop your running container and remove it execute: 
@@ -178,7 +186,7 @@ To call a container, `docker run` is used. To execute all of the unit tests writ
     }
     ]
     ```
-- `curl 'http://127.0.0.1:5000/epochs?limit=int&offset=int'`: Returns a modified list of epochs from the given query parameters. For example, if `limit=2` and `offset=1`, the second and third epoch from the data set (starting from the begginning) will be outputted. For `curl` commands with query parameters, make sure to include the outer quotes surrounding the command, otherwise the output will be unexpected and incorrect.     
+- `curl 'http://127.0.0.1:5000/epochs?limit=int&offset=int'`: Returns a modified list of epochs from the given query parameters. For example, if `limit=2` and `offset=1`, the second and third epoch from the data set (starting from the beginning) will be outputted. For `curl` commands with query parameters, make sure to include the outer quotes surrounding the command, otherwise the output will be unexpected and incorrect.     
 ```
 [
   {
@@ -315,4 +323,23 @@ Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z/speed
         "@units": "km/s"
   }
 }
+```
+- `   `: 
+```
+
+```
+
+- `   `: 
+```
+
+```
+
+- `   `: 
+```
+
+```
+
+- `   `: 
+```
+
 ```

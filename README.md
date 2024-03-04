@@ -99,6 +99,45 @@ To call a container, `docker run` is used. To execute all of the unit tests writ
 * Note: You may only run these commands after you have started up the Flask App. 
 
 #### Curl Commands to Routes: `curl http://<ipaddress>:port/route`
+- `curl http://127.0.0.1:5000/comment`: Returns the comment list object from the ISS data containing data about the ISS mass, drag area and coefficient, trajectory summary, etc.
+```
+[
+  "Units are in kg and m^2",
+  "MASS=459325.00",
+  "DRAG_AREA=2040.50",
+  "DRAG_COEFF=1.90",
+  "SOLAR_RAD_AREA=0.00",
+  "SOLAR_RAD_COEFF=0.00",
+  "Orbits start at the ascending node epoch",
+  "ISS first asc. node: EPOCH = 2024-02-28T13:15:27.792 $ ORBIT = 154 $ LAN(DEG) = 141.98244",
+  "ISS last asc. node : EPOCH = 2024-03-14T10:46:57.262 $ ORBIT = 385 $ LAN(DEG) = 90.66259",
+  "Begin sequence of events",
+  "TRAJECTORY EVENT SUMMARY:",
+  null,
+  "|       EVENT        |       TIG        | ORB |   DV    |   HA    |   HP    |",
+  "|                    |       GMT        |     |   M/S   |   KM    |   KM    |",
+  "|                    |                  |     |  (F/S)  |  (NM)   |  (NM)   |",
+  "=============================================================================",
+  "Crew-8 Launch         061:05:04:27.000             0.0     421.9     414.0",
+  "(0.0)   (227.8)   (223.5)",
+  null,
+  "Crew-8 Docking        062:11:40:05.000             0.0     422.0     413.6",
+  "(0.0)   (227.9)   (223.3)",
+  null,
+  "Crew-7 Undock         068:15:00:00.000             0.0     423.4     411.2",
+  "(0.0)   (228.6)   (222.0)",
+  null,
+  "GMT073 Reboost Preli  073:13:59:00.000             1.5     424.2     409.5",
+  "(4.9)   (229.0)   (221.1)",
+  null,
+  "SpX-30 Launch         074:00:00:00.000             0.0     424.2     414.6",
+  "(0.0)   (229.1)   (223.9)",
+  null,
+  "=============================================================================",
+  "End sequence of events"
+]
+```
+
 - `curl http://127.0.0.1:5000/epochs`: Returns a list of epoch dictionaries for the entire data set. 
     ```
     [   .
@@ -186,6 +225,7 @@ To call a container, `docker run` is used. To execute all of the unit tests writ
     }
     ]
     ```
+    
 - `curl 'http://127.0.0.1:5000/epochs?limit=int&offset=int'`: Returns a modified list of epochs from the given query parameters. For example, if `limit=2` and `offset=1`, the second and third epoch from the data set (starting from the beginning) will be outputted. For `curl` commands with query parameters, make sure to include the outer quotes surrounding the command, otherwise the output will be unexpected and incorrect.     
 ```
 [
@@ -246,7 +286,7 @@ To call a container, `docker run` is used. To execute all of the unit tests writ
 ]
 ```
 
-- `curl http://127.0.0.1:5000/epochs/<epoch>`: Returns state vectors for a specific epoch from the data set. A valid epoch datetime string must be passed. 
+- `curl http://127.0.0.1:5000/epochs/<epoch>`: Returns state vectors for a specific epoch from the data set. A valid epoch datetime string must be passed.  
 Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z`
 ```
 {
@@ -278,68 +318,53 @@ Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z`
 }
 ```
 
-- `curl http://127.0.0.1:5000/epochs/<epoch>/speed`: Returns the instantaneous speed for a specific epoch in the data set in the form of a JSON dictionary.
+- `curl http://127.0.0.1:5000/epochs/<epoch>/speed`: Returns the instantaneous speed for a specific epoch in the data set in the form of a JSON dictionary. 
 Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z/speed` 
 ```
 {
   "INSTANTANEOUS SPEED": {
-    "#text": 7.662329220562253,
+    "#text": 7.662,
     "@units": "km/s"
   }
 }
 ```
 
-- `curl http://127.0.0.1:5000/now`: Returns dictionary of state vectors including instantaneous speed for the epoch that is nearest in time to the program execution. This gives us live data about the ISS behavior. 
+- `curl http://127.0.0.1:5000/epochs/<epoch>/location`: Returns latitude, longitude, altitude, and geoposition for a specific epoch in the data set. 
+```
+
+```
+
+- `curl http://127.0.0.1:5000/epochs/<epoch>/header`: Returns header of ISS data containing creation date and originator. 
+```
+{
+  "CREATION_DATE": "2024-060T17:42:17.631Z",
+  "ORIGINATOR": "JSC"
+}
+```
+
+- `curl http://127.0.0.1:5000/epochs/<epoch>/metadata`: Returns metadata about the ISS data including start/stop time, object name/id, etc. 
 
 ```
 {
-  "EPOCH": "2024-054T04:52:00.000Z",
-  "INSTANTANEOUS SPEED": {
-        "#text": "7.664763151239193",
-        "@units": "km/s"
-  },
-  "X": {
-        "#text": "-6555.0513218720598",
-        "@units": "km"
-  },
-  "X_DOT": {
-        "#text": "1.2477367460557001",
-        "@units": "km/s"
-  },
-  "Y": {
-        "#text": "353.72055802057002",
-        "@units": "km"
-  },
-  "Y_DOT": {
-        "#text": "-4.9904725825196596",
-        "@units": "km/s"
-  },
-  "Z": {
-        "#text": "1743.0219630343299",
-        "@units": "km"
-  },
-  "Z_DOT": {
-        "#text": "5.6821589717515",
-        "@units": "km/s"
-  }
+    "CENTER_NAME": "EARTH",
+    "OBJECT_ID": "1998-067-A",
+    "OBJECT_NAME": "ISS",
+    "REF_FRAME": "EME2000",
+    "START_TIME": "2024-059T12:00:00.000Z",
+    "STOP_TIME": "2024-074T12:00:00.000Z",
+    "TIME_SYSTEM": "UTC"
 }
 ```
-- `   `: 
+
+- `curl http://127.0.0.1:5000/now`: Returns instantaneous speed, latitude, longitude, altitude, and geoposition for the Epoch that is nearest in time. This gives us live data about the ISS behavior. 
 ```
 
 ```
 
-- `   `: 
+- `curl http://127.0.0.1:5000/now/time`: Returns the time of the route execution and the latest epoch in the  ISS data set. 
 ```
-
-```
-
-- `   `: 
-```
-
-```
-
-- `   `: 
-```
-
+{
+  "Current Time": "2024-062T23:14:53.744660Z",
+  "Latest Epoch Time": "2024-062T23:12:05.000Z"
+}
 ```

@@ -86,7 +86,6 @@ def getNowEpoch(data:List[dict]) -> dict:
     """
     now_utc = datetime.now(timezone.utc)
     formatted_now = now_utc.strftime("%Y-%jT%H:%M:%S.%fZ")
-    print(f"Time Now: {formatted_now}")
     min_diff = float('inf')
     stored_epoch = {}
     # Parse through data and find the epoch containing the data closest to current time
@@ -140,7 +139,6 @@ def calculateLocation(x:float, y:float, z:float) -> dict:
     #latitude = np.degrees(np.arccos(z/math.sqrt(x**2 + y**2 + z**2)))        # degrees
     location_tuple_string = f"{latitude}, {longitude}"
     geoposition = geolocator.reverse(location_tuple_string)
-    print(geoposition)
 
     if geoposition is not None: 
         address = geoposition.raw['address']
@@ -308,18 +306,17 @@ def location(epoch:str) -> dict:
 # curl http://127.0.0.1:5000/now
 @app.route("/now", methods=['GET'])
 def now() -> dict:
-    """
-    Return instantaneous speed, latitude, longitude, altitude, and geoposition for the Epoch that is 
-    nearest in time
+    """Function resturns instantaneous speed, latitude, longitude, altitude, and 
+    geoposition for the Epoch that is nearest in time
+    Returns:
+        dict: Dictionary containing data of ISS geoposition, speed, etc. 
     """
     data = getStateVectorData()
     now_epoch = getNowEpoch(data)
     instantaneous_speed = round(calculateSpeed(float(now_epoch['X_DOT']['#text']), float(now_epoch['Y_DOT']['#text']), float(now_epoch['Z_DOT']['#text'])), 3)
     iss_location = calculateLocation(float(now_epoch['X']['#text']), float(now_epoch['Y']['#text']), float(now_epoch['Z']['#text']))
-    
     iss_data = iss_location
     iss_data["Instantaneous Speed [km/s]"] = instantaneous_speed
-    
     return iss_data
 
 # curl http://127.0.0.1:5000/now/time

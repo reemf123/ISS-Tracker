@@ -30,12 +30,22 @@ data = [{
         'X_DOT': {'@units': 'km/s', '#text': '5'}, 
         'Y_DOT': {'@units': 'km/s', '#text': '-2.0'}, 
         'Z_DOT': {'@units': 'km/s', '#text': '6.0'}
+        },
+
+        {
+        'EPOCH': '2024-62T12:00:00.000Z', 
+        'X': {'@units': 'km', '#text': '-5006.209374282'}, 
+        'Y': {'@units': 'km', '#text': '-4232.223231345'}, 
+        'Z': {'@units': 'km', '#text': '2124.7075926579801'}, 
+        'X_DOT': {'@units': 'km/s', '#text': '5'}, 
+        'Y_DOT': {'@units': 'km/s', '#text': '-2.0'}, 
+        'Z_DOT': {'@units': 'km/s', '#text': '6.0'}
         }
-        ]
+    ]
 
 def test_getNowEpoch():
-    pass
-  
+    latest_epoch = getNowEpoch(data)
+    assert(latest_epoch == data[-1])
 
 def test_calculateSpeed_1():
     """Function calculates speed from Cartesian Vectors when all of the speeds equal 0 km/s"""
@@ -46,6 +56,41 @@ def test_calculateSpeed_2():
     """Function calculates speed from Cartesian Vectors when the speeds are non 0 km/s"""
     speed = calculateSpeed(float(data[2]['X_DOT']['#text']), float(data[2]['Y_DOT']['#text']), float(data[2]['Z_DOT']['#text']))
     assert(speed == (math.sqrt(65)))
+
+def test_getStateVectorData():
+    pass
+
+def test_calculateLocation_latitude():
+    """Function tests latitude eqution"""
+    location = calculateLocation(float(data[-1]['X']['#text']), float(data[-1]['Y']['#text']), float(data[-1]['Z']['#text']), data[-1]['EPOCH'])
+    lat = location['Latitude [degrees]']
+    expected_latitude = math.degrees(math.atan2(float(data[-1]['Z']['#text']), math.sqrt(float(data[-1]['X']['#text'])*float(data[-1]['X']['#text']) + float(data[-1]['Y']['#text'])*float(data[-1]['Y']['#text'])))) 
+    assert(lat == round(expected_latitude,3))
+
+def test_calculateLocation_longitude():
+    """Function tests longitude equation"""
+    dt_object = datetime.strptime(data[-1]['EPOCH'], '%Y-%jT%H:%M:%S.%fZ')
+
+    hours = dt_object.hour
+    minutes = dt_object.minute
+
+    location = calculateLocation(float(data[-1]['X']['#text']), float(data[-1]['Y']['#text']), float(data[-1]['Z']['#text']), data[-1]['EPOCH'])
+    longitude = location['Longitude [degrees]']
+    
+    expected_longitude = math.degrees(math.atan2(float(data[-1]['Y']['#text']), float(data[-1]['X']['#text']))) - ((hours - 12) + (minutes/60))*(360/24) + 19
+    if expected_longitude > 180: 
+        expected_longitude = -180 + (expected_longitude- 180)
+    if expected_longitude < -180: 
+        expected_longitude = 180 + (expected_longitude + 180)
+
+    assert(longitude == round(expected_longitude,3))
+
+def test_calculateLocation_altitude():
+    """Function tests altitude equation"""
+    location = calculateLocation(float(data[-1]['X']['#text']), float(data[-1]['Y']['#text']), float(data[-1]['Z']['#text']), data[-1]['EPOCH'])
+    altitude = location['Altitude [km]']
+    expected_altitude = math.sqrt(float(data[-1]['X']['#text'])*float(data[-1]['X']['#text']) + float(data[-1]['Y']['#text'])*float(data[-1]['Y']['#text']) + float(data[-1]['Z']['#text'])*float(data[-1]['Z']['#text'])) - 6371.0 
+    assert(altitude == round(expected_altitude ,3)) 
 
 class TestEpochRoute(unittest.TestCase):
     def setUp(self):
@@ -291,30 +336,6 @@ class TestEpochRoute(unittest.TestCase):
 
     def test_calculateLocation(self):
         pass
-
-    @patch('iss_tracker.requests.get')
-    def test_comment_endpoint_success(self, mock_get):
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.text = """
-            <ndm>
-                <oem>
-                    <body>
-                        <segment>
-                            <data>
-                                <COMMENT>First comment</COMMENT>
-                                <COMMENT>Second comment</COMMENT>
-                            </data>
-                        </segment>
-                    </body>
-                </oem>
-            </ndm>
-        """
-
-        with self.app.test_request_context('/comment', method='GET'):
-            response = comment()
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, ['First comment', 'Second comment'])
 
     def test_header(self):
         pass

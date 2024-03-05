@@ -153,6 +153,8 @@ def calculateLocation(x:float, y:float, z:float, epoch:str) -> dict:
     now_utc = datetime.now(timezone.utc)
     formatted_now = now_utc.strftime('%Y-%jT%H:%M:%S.%f')[:-3] + 'Z'
 
+    # TODO - Find a geodecoder that wll determine what body of water
+
     if geoposition is not None: 
         address = geoposition.raw['address']
         city = address.get('city', '')

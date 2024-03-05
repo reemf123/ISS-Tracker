@@ -114,13 +114,14 @@ def calculateSpeed(x_dot:float, y_dot: float, z_dot: float) -> float:
     speed = math.sqrt(x_dot**2 + y_dot**2 + z_dot**2)
     return speed
 
-def calculateLocation(x:float, y:float, z:float) -> dict:
+def calculateLocation(x:float, y:float, z:float, epoch:str) -> dict:
     """Function calculates the geolocation of the ISS from 
         the x/y/z coordinates recorded with respect to the center of the earth. 
     Args:
         x (float): X coordinate of the ISS measured with respect to the center of the earth
         y (float): Y coordinate of the ISS measured with respect to the center of the earth
         z (float): Z coordinate of the ISS measured with respect to the center of the earth
+        epoch (str): The current datetime in which the x/y/z coordinates were extracted from
     Returns:
         dict: Dcictionary containing geolocation details of the ISS
     """
@@ -131,14 +132,26 @@ def calculateLocation(x:float, y:float, z:float) -> dict:
     country = None
     code = None
 
-    # TODO FIX
+    # Parse the string into a datetime object
+    dt_object = datetime.strptime(epoch, '%Y-%jT%H:%M:%S.%fZ')
+
+    # Extract hours and minutes
+    hours = dt_object.hour
+    minutes = dt_object.minute
+
     altitude = math.sqrt(x**2 + y**2 + z**2) - EARTH_RADIUS # km
-    longitude = np.degrees(np.arctan2(y, x))                # degrees
-    #latitude = np.degrees(np.arcsin(z/(EARTH_RADIUS + altitude)))
-    latitude = np.degrees(np.arcsin(z/EARTH_RADIUS))        # degrees
-    #latitude = np.degrees(np.arccos(z/math.sqrt(x**2 + y**2 + z**2)))        # degrees
+    latitude = math.degrees(math.atan2(z, math.sqrt(x**2 + y**2))) 
+    longitude = math.degrees(math.atan2(y, x)) - ((hours - 12) + (minutes/60))*(360/24) + 19
+    if longitude > 180: 
+        longitude = -180 + (longitude - 180)
+    if longitude < -180: 
+        longitude = 180 + (longitude + 180)
+    
     location_tuple_string = f"{latitude}, {longitude}"
-    geoposition = geolocator.reverse(location_tuple_string)
+    geoposition = geolocator.reverse(location_tuple_string, zoom=0, language='en')
+
+    now_utc = datetime.now(timezone.utc)
+    formatted_now = now_utc.strftime('%Y-%jT%H:%M:%S.%f')[:-3] + 'Z'
 
     if geoposition is not None: 
         address = geoposition.raw['address']
@@ -148,6 +161,8 @@ def calculateLocation(x:float, y:float, z:float) -> dict:
         code = address.get('country_code')
 
     iss_location = {
+        "Epoch Time": epoch, 
+        "Current Time": formatted_now, 
         "Altitude [km]": round(altitude,3), 
         "Longitude [degrees]": round(longitude,3), 
         "Latitude [degrees]": round(latitude,3), 
@@ -298,7 +313,7 @@ def location(epoch:str) -> dict:
     data = getStateVectorData()
     for entry in data:
         if (entry["EPOCH"] == epoch):
-            iss_location = calculateLocation(float(entry['X']['#text']), float(entry['Y']['#text']), float(entry['Z']['#text']))
+            iss_location = calculateLocation(float(entry['X']['#text']), float(entry['Y']['#text']), float(entry['Z']['#text']), epoch)
             return iss_location
         
     return "Epoch not available \n"
@@ -314,7 +329,7 @@ def now() -> dict:
     data = getStateVectorData()
     now_epoch = getNowEpoch(data)
     instantaneous_speed = round(calculateSpeed(float(now_epoch['X_DOT']['#text']), float(now_epoch['Y_DOT']['#text']), float(now_epoch['Z_DOT']['#text'])), 3)
-    iss_location = calculateLocation(float(now_epoch['X']['#text']), float(now_epoch['Y']['#text']), float(now_epoch['Z']['#text']))
+    iss_location = calculateLocation(float(now_epoch['X']['#text']), float(now_epoch['Y']['#text']), float(now_epoch['Z']['#text']), now_epoch['EPOCH'])
     iss_data = iss_location
     iss_data["Instantaneous Speed [km/s]"] = instantaneous_speed
     return iss_data
@@ -328,8 +343,8 @@ def nowTime() -> dict:
         dict: Dictionary of current time and latest epoch time. 
     """
     now_utc = datetime.now(timezone.utc)
-    formatted_now = now_utc.strftime("%Y-%jT%H:%M:%S.%fZ")
-    
+    formatted_now = now_utc.strftime('%Y-%jT%H:%M:%S.%f')[:-3] + 'Z'
+
     data = getStateVectorData()
     now_epoch = getNowEpoch(data)
 

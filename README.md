@@ -4,12 +4,12 @@
 ##### Due Date 1: Friday, Mar 8, by 11:59 pm Central Time
 
 ### Project Description
-We have found an abundance of interesting positional and velocity data for the International Space Station (ISS). Our goal is to create a Microservice/Web Application that allows users to query information about the ISS via an http request made in the browser or in the command line using `curl`. The goal is to design the microservice in a RESTful manner that will allow users of our application to intuitively seek the information they desire. 
+We have found an abundance of interesting positional and velocity data for the International Space Station (ISS). Our goal is to create a Microservice/Web Application that allows users to query information about the ISS via an HTTP request made in the browser or in the command line using `curl`. The goal is to design the microservice in a RESTful manner that will allow users of our application to intuitively seek the information they desire. 
 
 ### Project Objective 
 The objective of this project is to transform our simple ISS Tracker into a full Flask Web Application. The primary aim is to create a web app capable of querying and retrieving interesting positional and velocity data from the International Space Station (ISS) dataset. The microservice will leverage HTTPS API Requests to ingest real-time data and provide users with insightful information about the ISS. Using Pytest, we will test our code, and finally, we will containerize the tool using Docker so that anyone may pull our application image and run the Flask service to obtain ISS data in a RESTful manner.
 
-This project is important because it facilitates access to real-time ISS data in a user-friendly manner, enabling researchers, enthusiasts, and developers to gain valuable insights into the movement and dynamics of the International Space Station. For our development as students, deploying a web service teaches us how to write routes in a RESTful manner and help us understand how backend and frontend development work together to create a seamless tool that lives on the internet for users to interact with. 
+This project is important because it facilitates access to real-time ISS data in a user-friendly manner, enabling researchers, enthusiasts, and developers to gain valuable insights into the movement and dynamics of the International Space Station. For our development as students, deploying a web service teaches us how to write routes in a RESTful manner and helps us understand how backend and frontend development work together to create a seamless tool that lives on the internet for users to interact with. 
 
 ### Software Diagram: 
 The following software diagram captures the primary components and workflow of our system, describing the process in which a client may query for the NASA ISS data via a containerized web application developed through Flask.
@@ -34,6 +34,8 @@ The following software diagram captures the primary components and workflow of o
 - `softwareDiagram.png`: Software diagram capturing the primary components of the project architecture. 
 - `docker-compose.yml`: 
 - `requirements.txt`: Text file that lists all of the python non standard libraries used to develop the code. 
+
+The repository assumes installation of Docker. 
 
 ### Data
 Our project ingests the ISS Data via an API GET request that can be accessed either in the form of .xml or .text. 
@@ -89,6 +91,10 @@ To stop your running container and remove it execute:
 To call a container, `docker run` is used. To execute all of the unit tests written inside the application, pytest is called before the file name containing the unit tests: `docker run --rm <username>/<imagename>:<tag> full/path/to/pytest -vv <path_to_unit_test_in_container>.py`
 
 - Example Command: `docker run --rm reemf123/iss_tracker:1.0 /usr/local/bin/pytest -vv /app/test_iss_tracker.py`
+
+### Instructions for Deploying the App with Docker Compose
+
+
 
 ### Instructions For Accessing Web App Routes & Route Output Descriptions
 - General Curl Command: `curl -X METHOD [URL Example Domain]`
@@ -331,7 +337,19 @@ Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z/speed
 
 - `curl http://127.0.0.1:5000/epochs/<epoch>/location`: Returns latitude, longitude, altitude, and geoposition for a specific epoch in the data set. 
 ```
-
+{
+  "Altitude [km]": 421.819,
+  "Current Time": "2024-065T04:31:04.648Z",
+  "Epoch Time": "2024-065T04:24:00.000Z",
+  "Geoposition": {
+    "City": "",
+    "Country": "Switzerland",
+    "Country Code": "ch",
+    "State": ""
+  },
+  "Latitude [degrees]": 46.64,
+  "Longitude [degrees]": 6.866
+}
 ```
 
 - `curl http://127.0.0.1:5000/epochs/<epoch>/header`: Returns header of ISS data containing creation date and originator. 
@@ -358,13 +376,26 @@ Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z/speed
 
 - `curl http://127.0.0.1:5000/now`: Returns instantaneous speed, latitude, longitude, altitude, and geoposition for the Epoch that is nearest in time. This gives us live data about the ISS behavior. 
 ```
-
+{
+    "Altitude [km]": 419.517,
+    "Current Time": "2024-065T04:09:25.035Z",
+    "Epoch Time": "2024-065T04:08:00.000Z",
+    "Geoposition": {
+        "City": "",
+        "Country": "United States",
+        "Country Code": "us",
+        "State": "Virginia"
+    },
+    "Instantaneous Speed [km/s]": 7.664,
+    "Latitude [degrees]": 37.044,
+    "Longitude [degrees]": -75.935
+}
 ```
 
 - `curl http://127.0.0.1:5000/now/time`: Returns the time of the route execution and the latest epoch in the  ISS data set. 
 ```
 {
-  "Current Time": "2024-062T23:14:53.744660Z",
+  "Current Time": "2024-062T23:14:53.745Z",
   "Latest Epoch Time": "2024-062T23:12:05.000Z"
 }
 ```

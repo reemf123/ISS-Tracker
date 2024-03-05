@@ -1,5 +1,7 @@
 from iss_tracker import *
 import unittest
+from flask import Flask
+from unittest.mock import patch
 
 # Mock data for static functions
 data = [{
@@ -287,16 +289,37 @@ class TestEpochRoute(unittest.TestCase):
         data = response.get_data(as_text=True)
         self.assertEqual(data, "Epoch not available \n")
 
-    def test_calculateLocation():
+    def test_calculateLocation(self):
         pass
 
-    def test_comment():
+    @patch('iss_tracker.requests.get')
+    def test_comment_endpoint_success(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.text = """
+            <ndm>
+                <oem>
+                    <body>
+                        <segment>
+                            <data>
+                                <COMMENT>First comment</COMMENT>
+                                <COMMENT>Second comment</COMMENT>
+                            </data>
+                        </segment>
+                    </body>
+                </oem>
+            </ndm>
+        """
+
+        with self.app.test_request_context('/comment', method='GET'):
+            response = comment()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, ['First comment', 'Second comment'])
+
+    def test_header(self):
         pass
 
-    def test_header():
-        pass
-
-    def test_metadata():
+    def test_metadata(self):
         pass
 
 

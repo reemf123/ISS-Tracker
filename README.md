@@ -37,7 +37,7 @@ The following software diagram captures the primary components and workflow of o
 
 - `test/test_iss_tracker.py`: The testing script for the iss_tracker.py. Ensures the robustness of our program. 
 - `softwareDiagram.png`: Software diagram capturing the primary components of the project architecture. 
-- `docker-compose.yml`: 
+- `docker-compose.yml`: YAML file used to replace running `docker run` commands. 
 - `requirements.txt`: Text file that lists all of the python non standard libraries used to develop the code. 
 
 The repository assumes installation of Docker. 
@@ -98,8 +98,11 @@ To call a container, `docker run` is used. To execute all of the unit tests writ
 - Example Command: `docker run --rm reemf123/iss_tracker:1.0 /usr/local/bin/pytest -vv /app/test_iss_tracker.py`
 
 ### Instructions for Deploying the App with Docker Compose
+Docker compose files are an additional means/method to execute `docker run` commands, especially critical for multi container Docker Applications. The YAML file is used to configure the service, then with a single command, you can start up the container from the specifications detailed in the YAML file. 
 
+The general commands are as follows: `docker-compose <verb> <parameters>`
 
+To run the Flask application container, execute: `docker-compose up`
 
 ### Instructions For Accessing Web App Routes & Route Output Descriptions
 - General Curl Command: `curl -X METHOD [URL Example Domain]`
@@ -357,7 +360,7 @@ Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z/speed
 }
 ```
 
-- `curl http://127.0.0.1:5000/epochs/<epoch>/header`: Returns header of ISS data containing creation date and originator. 
+- `curl http://127.0.0.1:5000/header`: Returns header of ISS data containing creation date and originator. 
 ```
 {
   "CREATION_DATE": "2024-060T17:42:17.631Z",
@@ -365,7 +368,7 @@ Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z/speed
 }
 ```
 
-- `curl http://127.0.0.1:5000/epochs/<epoch>/metadata`: Returns metadata about the ISS data including start/stop time, object name/id, etc. 
+- `curl http://127.0.0.1:5000/metadata`: Returns metadata about the ISS data including start/stop time, object name/id, etc. 
 
 ```
 {

@@ -142,7 +142,7 @@ def calculateLocation(x:float, y:float, z:float, epoch:str) -> dict:
         longitude = 180 + (longitude + 180)
     
     location_tuple_string = f"{latitude}, {longitude}"
-    geoposition = geolocator.reverse(location_tuple_string, zoom=10, language='en')
+    geoposition = geolocator.reverse(location_tuple_string, zoom=15, language='en')
 
     now_utc = datetime.now(timezone.utc)
     formatted_now = now_utc.strftime('%Y-%jT%H:%M:%S.%f')[:-3] + 'Z'

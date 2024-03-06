@@ -64,7 +64,7 @@ Once the homework5 repository has been pulled and you have iss_tracker.py, test_
 
 To ensure the build was succesful, run `docker images`
 
-### Instructions on How to Deploy Containerized Code as a Flask App
+### Instructions for Deploying Flask Application
 To create an instance of your image (a “container”), use the following command: `docker run --name "name-of-app" -d -p 5000:5000 <dockerhubusername>/<code>:<version>`
 
 - Example Command: `docker run --name "iss-tracker-app" -d -p 5000:5000 reemf123/iss_tracker:1.0`
@@ -73,9 +73,18 @@ The `-d` flag detaches your terminal from the running container - i.e. it runs t
 
 To check to see if everything is up and running as expected, execute: `docker ps -a`. This should return a list with a container you named, an UP status, and the port mapping that you specified.
 
+### Instructions for Deploying Flask Application with Docker Compose File
+Docker compose files are an alternative means/method to execute `docker run` commands, especially critical for multi container Docker Applications. So, after building the image, instead of executing the `docker run` commands detailed above, the YAML file is used to configure the service, then with a single command, you can start up the container from the specifications detailed in the YAML file. 
+
+The general commands are as follows: `docker-compose <verb> <parameters>`
+
+To run the Flask application container, execute: `docker-compose up`
+
+To check to see if everything is up and running as expected, execute: `docker ps -a`. This should return a list with a container you named, an UP status, and the port mapping that you specified in the `docker-compose.yml`.
+
 Once you have ensured that the microservice is up and running, you can access your application vial `curl` and by specifying the port. 
 
-Example Commands to Execute Routes in Container (See Details about Routes Below):
+#### Example Commands to Execute in Running Container (See Details about Routes Below):
 - `curl localhost:5000/comment`
 - `curl localhost:5000/epochs`
 - `curl 'localhost:5000/epochs?limit=<int>&offset=<int>'`
@@ -87,22 +96,10 @@ Example Commands to Execute Routes in Container (See Details about Routes Below)
 - `curl localhost:5000/now`
 - `curl localhost:5000/now/time`
 
-### Instructions to Stop Microservice 
-To stop your running container and remove it execute: 
-- `docker stop <containerId>`
-- `docker remove <containerId>`
-
 ### Instructions to Run the Containerized Unit Tests
 To call a container, `docker run` is used. To execute all of the unit tests written inside the application, pytest is called before the file name containing the unit tests: `docker run --rm <username>/<imagename>:<tag> full/path/to/pytest -vv <path_to_unit_test_in_container>.py`
 
 - Example Command: `docker run --rm reemf123/iss_tracker:1.0 /usr/local/bin/pytest -vv /app/test_iss_tracker.py`
-
-### Instructions for Deploying the App with Docker Compose
-Docker compose files are an additional means/method to execute `docker run` commands, especially critical for multi container Docker Applications. The YAML file is used to configure the service, then with a single command, you can start up the container from the specifications detailed in the YAML file. 
-
-The general commands are as follows: `docker-compose <verb> <parameters>`
-
-To run the Flask application container, execute: `docker-compose up`
 
 ### Instructions For Accessing Web App Routes & Route Output Descriptions
 - General Curl Command: `curl -X METHOD [URL Example Domain]`
@@ -421,3 +418,8 @@ The current iteration of our Web Application lacks the capability to decode geol
   "Latest Epoch Time": "2024-062T23:12:05.000Z"
 }
 ```
+
+### Instructions to Stop Microservice 
+To stop your running container and remove it execute: 
+- `docker stop <containerId>`
+- `docker remove <containerId>`

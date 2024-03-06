@@ -125,12 +125,6 @@ def calculateLocation(x:float, y:float, z:float, epoch:str) -> dict:
     Returns:
         dict: Dcictionary containing geolocation details of the ISS
     """
-    # Initialize geolocation attributes to None
-    address = None
-    city = None
-    state = None
-    country = None
-    code = None
 
     # Parse the string into a datetime object
     dt_object = datetime.strptime(epoch, '%Y-%jT%H:%M:%S.%fZ')
@@ -148,12 +142,10 @@ def calculateLocation(x:float, y:float, z:float, epoch:str) -> dict:
         longitude = 180 + (longitude + 180)
     
     location_tuple_string = f"{latitude}, {longitude}"
-    geoposition = geolocator.reverse(location_tuple_string, zoom=0, language='en')
+    geoposition = geolocator.reverse(location_tuple_string, zoom=10, language='en')
 
     now_utc = datetime.now(timezone.utc)
     formatted_now = now_utc.strftime('%Y-%jT%H:%M:%S.%f')[:-3] + 'Z'
-
-    # TODO - Find a geodecoder that wll determine what body of water
 
     if geoposition is not None: 
         address = geoposition.raw['address']
@@ -162,16 +154,29 @@ def calculateLocation(x:float, y:float, z:float, epoch:str) -> dict:
         country = address.get('country', '')
         code = address.get('country_code')
 
-    iss_location = {
+        iss_location = {
+            "Epoch Time": epoch, 
+            "Current Time": formatted_now, 
+            "Altitude [km]": round(altitude,3), 
+            "Longitude [degrees]": round(longitude,3), 
+            "Latitude [degrees]": round(latitude,3), 
+            "Geoposition": {"City": city, "State": state, "Country": country, "Country Code": code}
+        }
+        
+        return iss_location
+    
+    # TODO - Find a geodecoder that wll determine what body of water
+    else:
+        iss_location = {
         "Epoch Time": epoch, 
         "Current Time": formatted_now, 
         "Altitude [km]": round(altitude,3), 
         "Longitude [degrees]": round(longitude,3), 
         "Latitude [degrees]": round(latitude,3), 
-        "Geoposition": {"City": city, "State": state, "Country": country, "Country Code": code}
-        }
-    
-    return iss_location
+        "Geoposition": "No Location Data for the ISS at the moment"
+    }
+        
+        return iss_location
 
 # curl http://127.0.0.1:5000/epochs
 # curl -X GET http://127.0.0.1:5000/epochs

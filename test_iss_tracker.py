@@ -435,11 +435,17 @@ class TestEpochRoute(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(data, List)
 
-
-    
     def test_now(self):
-        pass
+        response = self.app.get("/now")
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(data, dict)
+        assert('Geoposition' in data)
 
+    def test_location_1(self):
+        response = self.app.get("/epochs/2022-067T09:46:00.000Z/location")
+        self.assertEqual(response.status_code, 200)
+        assert(response.get_data(as_text=True) == "Epoch not available \n")
 
 if __name__ == '__main__':
     unittest.main()

@@ -7,7 +7,12 @@
 We have found an abundance of interesting positional and velocity data for the International Space Station (ISS). Our goal is to create a Microservice/Web Application that allows users to query information about the ISS via an HTTP request made in the browser or in the command line using `curl`. The goal is to design the microservice in a RESTful manner that will allow users of our application to intuitively seek the information they desire. 
 
 ### Project Objective 
-The objective of this project is to transform our simple ISS Tracker into a full Flask Web Application. The primary aim is to create a web app capable of querying and retrieving interesting positional and velocity data from the International Space Station (ISS) dataset. The microservice will leverage HTTPS API Requests to ingest real-time data and provide users with insightful information about the ISS. Using Pytest, we will test our code, and finally, we will containerize the tool using Docker so that anyone may pull our application image and run the Flask service to obtain ISS data in a RESTful manner.
+The objective of this project is to transform our simple ISS Tracker into a full Flask Web Application. The primary aim is to create a web app capable of querying and retrieving interesting positional and velocity data from the International Space Station (ISS) dataset.Our microservice will leverage HTTPS API Requests to ingest real-time data and provide users with insightful information about the ISS. The information we are presenting are similar to the following applications: 
+
+- 1. https://www.n2yo.com/?s=90027
+- 2. http://api.open-notify.org/iss-now.json
+
+Using Pytest, we will test our code, and finally, we will containerize the tool using Docker so that anyone may pull our application image and run the Flask service to obtain ISS data in a RESTful manner.
 
 This project is important because it facilitates access to real-time ISS data in a user-friendly manner, enabling researchers, enthusiasts, and developers to gain valuable insights into the movement and dynamics of the International Space Station. For our development as students, deploying a web service teaches us how to write routes in a RESTful manner and helps us understand how backend and frontend development work together to create a seamless tool that lives on the internet for users to interact with. 
 
@@ -389,6 +394,20 @@ Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z/speed
     "Instantaneous Speed [km/s]": 7.664,
     "Latitude [degrees]": 37.044,
     "Longitude [degrees]": -75.935
+}
+```
+
+The current iteration of our Web Application lacks the capability to decode geolocations for bodies of water. As a result, when the International Space Station (ISS) passes over a lake, river, ocean, or sea, the geoposition data appears as follows:
+
+```
+{
+  "Altitude [km]": 420.415,
+  "Current Time": "2024-066T00:09:01.278Z",
+  "Epoch Time": "2024-066T00:08:00.000Z",
+  "Geoposition": "No Location Data for the ISS at the moment",
+  "Instantaneous Speed [km/s]": 7.666,
+  "Latitude [degrees]": 17.142,
+  "Longitude [degrees]": -42.499
 }
 ```
 

@@ -340,7 +340,7 @@ Example Command: `curl http://127.0.0.1:5000/epochs/2024-054T04:44:00.000Z/speed
 }
 ```
 
-- `curl http://127.0.0.1:5000/epochs/<epoch>/location`: Returns latitude, longitude, altitude, and geoposition for a specific epoch in the data set. 
+- `curl http://127.0.0.1:5000/epochs/<epoch>/location`: Returns latitude, longitude, altitude, and geoposition for a specific epoch in the data set. For the geoposition data, if the city/country/state data is avaliable, it will be outputted, but if the ISS is over a body of water, the geoposition data will be unavailable. 
 ```
 {
   "Altitude [km]": 421.819,

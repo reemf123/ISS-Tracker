@@ -57,14 +57,14 @@ The ISS Trajectory Data Contains information on:
     - Position X, Y, and Z in km
     - Velocity X, Y, and Z in km/s
 
-### Instructions on How to Build a Container
+### Instructions on How to Build a Container with Docker Build
 Once the homework5 repository has been pulled and you have iss_tracker.py, test_iss_tracker.py, and Dockerfile in the same directory, you build an image of the program with the following command: `docker build -t <dockerhubusername>/<code>:<version> .`
 
 - Example Command: `docker build -t reemf123/iss_tracker:1.0 .`
 
 To ensure the build was succesful, run `docker images`
 
-### Instructions for Deploying Flask Application
+### Instructions for Deploying Flask Application with Docker Run
 To create an instance of your image (a “container”), use the following command: `docker run --name "name-of-app" -d -p 5000:5000 <dockerhubusername>/<code>:<version>`
 
 - Example Command: `docker run --name "iss-tracker-app" -d -p 5000:5000 reemf123/iss_tracker:1.0`
@@ -73,7 +73,7 @@ The `-d` flag detaches your terminal from the running container - i.e. it runs t
 
 To check to see if everything is up and running as expected, execute: `docker ps -a`. This should return a list with a container you named, an UP status, and the port mapping that you specified.
 
-### Instructions for Deploying Flask Application with Docker Compose File
+### Instructions for Deploying Flask Application with Docker Compose
 Docker compose files are an alternative means/method to execute the `docker build` and `docker run` commands. So, instead of building an image and then executing the `docker run` commands detailed above, the YAML file is used to configure and deploy the service, then with a single command, you can start up the container from the specifications detailed in the YAML file. 
 
 The general commands are as follows: `docker-compose <verb> <parameters>`

@@ -424,4 +424,4 @@ To stop your running container and remove it execute:
 - `docker stop <containerId>`
 - `docker remove <containerId>`
 
-If you used `docker-compose` to start the container, you may execute `docker compose down` to stop and remove the container. 
+If you used `docker-compose` to start the container, you may execute `docker-compose down` to stop and remove the container. 

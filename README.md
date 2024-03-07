@@ -37,7 +37,7 @@ The following software diagram captures the primary components and workflow of o
 
 - `test/test_iss_tracker.py`: The testing script for the iss_tracker.py. Ensures the robustness of our program. 
 - `softwareDiagram.png`: Software diagram capturing the primary components of the project architecture. 
-- `docker-compose.yml`: YAML file used to replace running `docker run` commands. 
+- `docker-compose.yml`: YAML file used to replace running the `docker build` and `docker run` commands. 
 - `requirements.txt`: Text file that lists all of the python non standard libraries used to develop the code. 
 
 The repository assumes installation of Docker. 
@@ -74,7 +74,7 @@ The `-d` flag detaches your terminal from the running container - i.e. it runs t
 To check to see if everything is up and running as expected, execute: `docker ps -a`. This should return a list with a container you named, an UP status, and the port mapping that you specified.
 
 ### Instructions for Deploying Flask Application with Docker Compose File
-Docker compose files are an alternative means/method to execute `docker run` commands, especially critical for multi container Docker Applications. So, after building the image, instead of executing the `docker run` commands detailed above, the YAML file is used to configure the service, then with a single command, you can start up the container from the specifications detailed in the YAML file. 
+Docker compose files are an alternative means/method to execute the `docker build` and `docker run` commands. So, instead of building an image and then executing the `docker run` commands detailed above, the YAML file is used to configure and deploy the service, then with a single command, you can start up the container from the specifications detailed in the YAML file. 
 
 The general commands are as follows: `docker-compose <verb> <parameters>`
 
